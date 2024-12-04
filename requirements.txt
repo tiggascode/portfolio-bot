@@ -1,0 +1,4 @@
+sqlite3==3.37.2  # Default SQLite library included with Python (no need to install)
+pyTelegramBotAPI==4.12.0  # telebot library
+requests==2.31.0  # For API requests
+schedule==1.2.0  # For scheduling tasks

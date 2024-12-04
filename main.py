@@ -3,8 +3,9 @@ from telebot import types
 import telebot
 import requests
 import sqlite3
+import schedule
 import time
-
+import threading
 
 
 
@@ -276,9 +277,7 @@ def select_transaction(message, rows):
     bot.register_next_step_handler(message, lambda msg: confirm_delete(msg, rows[choice]))
 
 
-import schedule
-import time
-import threading
+
 def send_daily_message():
     # Get all user IDs from the database
     cursor.execute("SELECT user_id FROM users")
