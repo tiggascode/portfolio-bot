@@ -23,7 +23,7 @@ A Telegram bot that helps users manage and track their cryptocurrency portfolios
 ### Prerequisites
 
 - Python 3.9 or higher
-- Telegram bot token (get it via [BotFather](https://core.telegram.org/bots#botfather))
+- Telegram bot token (get it via [BotFather]([https://core.telegram.org/bots#botfather](https://t.me/BotFather)))
 - CoinMarketCap API key (sign up [here](https://coinmarketcap.com/api/))
 - SQLite3 (pre-installed with Python)
 
