@@ -125,18 +125,4 @@ The bot provides custom inline and reply keyboards for user-friendly interaction
 - **Multi-Currency Support**: Add support for other fiat currencies besides USD.
 - **Advanced Analytics**: Display charts and historical data for coins.
 
----
 
-## Contributing
-
-Contributions are welcome! Feel free to fork the project, create a branch, and submit a pull request.
-
----
-
-
-## Contact
-
-- Telegram: [@your-username](https://t.me/your-username)
-- GitHub: [your-username](https://github.com/your-username)
-
----
