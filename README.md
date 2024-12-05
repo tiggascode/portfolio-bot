@@ -32,8 +32,8 @@ A Telegram bot that helps users manage and track their cryptocurrency portfolios
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/crypto-portfolio-telegram-bot.git
-   cd crypto-portfolio-telegram-bot
+   git clone https://github.com/tiggascode/portfolio-bot.git
+   cd portfolio-bot
    ```
 
 2. Install the required Python libraries:
