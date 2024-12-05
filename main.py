@@ -141,21 +141,21 @@ def handle_query(call):
     if call.data == "portfolio":
         show_portfolio(call.message)
         bot.answer_callback_query(call.id, text="Portfolio displayed")
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.id, text=call.message.text)
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     elif call.data == "add":
         bot.answer_callback_query(call.id)
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         bot.send_message(call.message.chat.id, "Please send the coin symbol, amount, and purchase price in the format: SYMBOL AMOUNT PURCHASE_PRICE (e.g., BTC 0.5 30000)", reply_markup=cancel_keyboard())
         bot.register_next_step_handler(call.message, add_to_portfolio)
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.id, text=call.message.text)
     elif call.data == "cancel":
-        print("cancel")
         bot.answer_callback_query(call.id, "Adding Coin are canceled")
         bot.clear_step_handler_by_chat_id(call.message.chat.id)
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         bot.send_message(call.message.chat.id, "Adding Coin are canceled", reply_markup=all_keyboard())
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.id, text=call.message.text)
     elif call.data == "delete":
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         initiate_delete(call.message)
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.id, text=call.message.text)
+
 def add_to_portfolio(message):
     if message.text.lower() == 'cancel':
         bot.reply_to(message, "Adding Coin are cancelled", reply_markup=portfolio_keyboard())
