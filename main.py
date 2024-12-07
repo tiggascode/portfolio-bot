@@ -84,7 +84,8 @@ def show_portfolio(message):
     rows = cursor.fetchall()
 
     if not rows:
-        bot.reply_to(message, "Your portfolio is empty. Add coins by sending SYMBOL AMOUNT PURCHASE_PRICE.")
+        initiate_add_to_portfolio(message)  # Call the function to add a coin
+
         return
 
     merged_coins = {}
@@ -147,11 +148,37 @@ def handle_query(call):
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         bot.send_message(call.message.chat.id, "Please send the coin symbol, amount, and purchase price in the format: SYMBOL AMOUNT PURCHASE_PRICE (e.g., BTC 0.5 30000)", reply_markup=cancel_keyboard())
         bot.register_next_step_handler(call.message, add_to_portfolio)
-    elif call.data == "cancel":
-        bot.answer_callback_query(call.id, "Adding Coin are canceled")
-        bot.clear_step_handler_by_chat_id(call.message.chat.id)
+    elif call.data == "cancel_delete":
+        bot.answer_callback_query(call.id, "Deleting Coin is canceled")
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        bot.send_message(call.message.chat.id, "Adding Coin are canceled", reply_markup=all_keyboard())
+        bot.send_message(call.message.chat.id, "Deleting Coin is canceled", reply_markup=all_keyboard())
+    elif call.data.startswith("confirm_delete_"):
+        row_id = int(call.data.split("_")[-1])
+        cursor.execute("SELECT symbol, amount, purchase_price FROM portfolio WHERE id = ?", (row_id,))
+        row = cursor.fetchone()
+        if row:
+            cursor.execute("DELETE FROM portfolio WHERE id = ?", (row_id,))
+            conn.commit()
+            bot.answer_callback_query(call.id, f"Deleted {row[1]} of {row[0]} at {row[2]} USD")
+            bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+            bot.send_message(call.message.chat.id, f"Deleted {row[1]} of {row[0]} at {row[2]} USD", reply_markup=portfolio_keyboard())
+        else:
+            bot.answer_callback_query(call.id, "Error: Coin not found")
+    elif call.data.startswith("delete_"):
+        row_id = int(call.data.split("_")[-1])
+        cursor.execute("SELECT symbol, amount, purchase_price FROM portfolio WHERE id = ?", (row_id,))
+        row = cursor.fetchone()
+        if row:
+            confirm_keyboard = types.InlineKeyboardMarkup()
+            confirm_button = types.InlineKeyboardButton("Confirm", callback_data=f"confirm_delete_{row_id}")
+            cancel_button = types.InlineKeyboardButton("Cancel", callback_data="cancel_delete")
+            confirm_keyboard.add(confirm_button, cancel_button)
+            bot.edit_message_text(f"Are you sure you want to delete {row[1]} of {row[0]} at {row[2]} USD from your portfolio?",
+                                  chat_id=call.message.chat.id,
+                                  message_id=call.message.message_id,
+                                  reply_markup=confirm_keyboard)
+        else:
+            bot.answer_callback_query(call.id, "Error: Coin not found")
     elif call.data == "delete":
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         initiate_delete(call.message)
@@ -211,7 +238,7 @@ def initiate_delete(message):
 
 def delete_coin(message):
     if message.text.lower() == 'cancel':
-        bot.reply_to(message, "Deleting Coin are cancelled", reply_markup=portfolio_keyboard())
+        bot.reply_to(message, "Deleting Coin is cancelled", reply_markup=portfolio_keyboard())
         return
 
     symbol = message.text.upper()
@@ -225,18 +252,22 @@ def delete_coin(message):
         return
 
     if len(rows) == 1:
-        confirm_keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        confirm_keyboard.add(types.KeyboardButton("Confirm", request_location=False))
-        confirm_keyboard.add(types.KeyboardButton("Cancel", request_location=False))
+        confirm_keyboard = types.InlineKeyboardMarkup()
+        confirm_button = types.InlineKeyboardButton("Confirm", callback_data=f"confirm_delete_{rows[0][0]}")
+        cancel_button = types.InlineKeyboardButton("Cancel", callback_data="cancel_delete")
+        confirm_keyboard.add(confirm_button, cancel_button)
 
         bot.send_message(message.chat.id, f"Are you sure you want to delete {rows[0][2]} of {rows[0][1]} at {rows[0][3]} USD from your portfolio?", reply_markup=confirm_keyboard)
-        bot.register_next_step_handler(message, confirm_delete, rows[0])
     else:
         response = "You have multiple transactions of this coin. Please choose which one to delete:\n"
+        keyboard = types.InlineKeyboardMarkup()
         for i, row in enumerate(rows):
-            response += f"{i+1}. {row[2]} of {row[1]} at {row[3]} USD\n"
-        bot.send_message(message.chat.id, response, reply_markup=cancel_keyboard())
-        bot.register_next_step_handler(message, select_transaction, rows)
+            callback_data = f"delete_{row[0]}"
+            button = types.InlineKeyboardButton(f"{i+1}. {row[2]} of {row[1]} at {row[3]} USD", callback_data=callback_data)
+            keyboard.add(button)
+        cancel_button = types.InlineKeyboardButton("Cancel", callback_data="cancel_delete")
+        keyboard.add(cancel_button)
+        bot.send_message(message.chat.id, response, reply_markup=keyboard)
 
 def confirm_delete(message, row, confirm_keyboard=None):
     if message.text.lower() == 'cancel':
@@ -301,10 +332,6 @@ schedule.every().day.at("19:07").do(send_daily_message)  # 7pm
 
 # Create threads for the scheduler and the bot
 scheduler_thread = threading.Thread(target=run_scheduler)
-bot_thread = threading.Thread(target=run_bot)
-
-# Start the threads
-scheduler_thread.start()
-bot_thread.start()
+run_bot()
 
 
