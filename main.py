@@ -107,7 +107,7 @@ def show_portfolio(message):
     for symbol, data in merged_coins.items():
         current_price = get_current_price(symbol)
         if current_price is None:
-            bot.reply_to(message, f"Could not retrieve current price for {symbol}.")
+            bot.send_message(message.chat.id, f"Could not retrieve current price for {symbol}.")
             return
 
         value = current_price * data['amount']
@@ -129,7 +129,7 @@ def show_portfolio(message):
         f"\nTotal Portfolio Value: {total_value:.2f} USD\n"
         f"Total Profit/Loss: {total_profit_loss:.2f} USD"
     )
-    bot.reply_to(message, response, reply_markup=delete_and_add_keyboard())
+    bot.send_message(message.chat.id, response, reply_markup=delete_and_add_keyboard())
 
 
 @bot.message_handler(commands=['add'])
@@ -185,13 +185,13 @@ def handle_query(call):
 
 def add_to_portfolio(message):
     if message.text.lower() == 'cancel':
-        bot.reply_to(message, "Adding Coin are cancelled", reply_markup=portfolio_keyboard())
+        bot.send_message(message.chat.id, "Adding Coin are cancelled", reply_markup=portfolio_keyboard())
         return
 
     try:
         text = message.text.split()
         if len(text) != 3:
-            bot.reply_to(message, "Please enter in the format: SYMBOL AMOUNT PURCHASE_PRICE (e.g., BTC 0.5 30000)")
+            bot.send_message(message.chat.id, "Please enter in the format: SYMBOL AMOUNT PURCHASE_PRICE (e.g., BTC 0.5 30000)")
             bot.register_next_step_handler(message, add_to_portfolio)  # Call add_to_portfolio again
             return
 
@@ -208,10 +208,10 @@ def add_to_portfolio(message):
         cursor.execute("INSERT INTO portfolio (user_id, symbol, amount, purchase_price) VALUES (?, ?, ?, ?)",
                        (user_id, symbol, amount, purchase_price))
         conn.commit()
-        bot.reply_to(message, f"Added {amount} of {symbol} to your portfolio at {purchase_price} USD each.",
+        bot.send_message(message.chat.id, f"Added {amount} of {symbol} to your portfolio at {purchase_price} USD each.",
                      reply_markup=portfolio_keyboard())
     except ValueError:
-        bot.reply_to(message, "Invalid input. Make sure to follow the format: SYMBOL AMOUNT PURCHASE_PRICE.", reply_markup=cancel_keyboard())
+        bot.send_message(message.chat.id, "Invalid input. Make sure to follow the format: SYMBOL AMOUNT PURCHASE_PRICE.", reply_markup=cancel_keyboard())
 
 def send_symbol_list(chat_id, symbols):
     response = "Please choose which coin to delete:\n"
@@ -238,7 +238,7 @@ def initiate_delete(message):
 
 def delete_coin(message):
     if message.text.lower() == 'cancel':
-        bot.reply_to(message, "Deleting Coin is cancelled", reply_markup=portfolio_keyboard())
+        bot.send_message(message.chat.id, "Deleting Coin is cancelled", reply_markup=portfolio_keyboard())
         return
 
     symbol = message.text.upper()
@@ -248,7 +248,7 @@ def delete_coin(message):
     rows = cursor.fetchall()
 
     if not rows:
-        bot.reply_to(message, "You don't have any transactions of this coin in your portfolio.", reply_markup=portfolio_keyboard())
+        bot.send_message(message.chat.id, "You don't have any transactions of this coin in your portfolio.", reply_markup=portfolio_keyboard())
         return
 
     if len(rows) == 1:
@@ -271,16 +271,16 @@ def delete_coin(message):
 
 def confirm_delete(message, row, confirm_keyboard=None):
     if message.text.lower() == 'cancel':
-        bot.reply_to(message, "Deleting Coin are cancelled", reply_markup=portfolio_keyboard())
+        bot.send_message(message.chat.id, "Deleting Coin are cancelled", reply_markup=portfolio_keyboard())
         return
 
     if message.text.lower() == 'confirm':
         id = row[0]
         cursor.execute("DELETE FROM portfolio WHERE id = ?", (id,))
         conn.commit()
-        bot.reply_to(message, f"Deleted {row[2]} of {row[1]} at {row[3]} USD", reply_markup=portfolio_keyboard())
+        bot.send_message(message.chat.id, f"Deleted {row[2]} of {row[1]} at {row[3]} USD", reply_markup=portfolio_keyboard())
     else:
-        bot.reply_to(message, "Invalid input. Please try again.", reply_markup=confirm_keyboard)
+        bot.send_message(message.chat.id, "Invalid input. Please try again.", reply_markup=confirm_keyboard)
 
 def delete_specific_coin(message, rows):
     coins = []
