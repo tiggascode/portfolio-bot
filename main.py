@@ -148,7 +148,6 @@ def handle_query(call):
         bot.answer_callback_query(call.id, text="Portfolio displayed")
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     elif call.data == "cancel":
-        print("cancel")
         bot.answer_callback_query(call.id, "Adding Coin are canceled")
         bot.clear_step_handler_by_chat_id(call.message.chat.id)
         try:
@@ -368,7 +367,7 @@ def send_message_to_users():
     if users:
         for user_id in users:
             try:
-                bot.send_message(user_id, "This is your scheduled message!")
+                bot.send_message(user_id, "Hi its time to check your portfolio")
                 print(f"Message sent to {user_id}")
             except Exception as e:
                 print(f"Error sending message to {user_id}: {e}")
@@ -378,9 +377,10 @@ def send_message_to_users():
 
 # Schedule the messages
 def schedule_messages():
-    schedule.every().day.at("07:00").do(send_message_to_users)
-    schedule.every().day.at("20:44").do(send_message_to_users)
-    schedule.every().day.at("20:45").do(send_message_to_users)
+    schedule.every().day.at("07:07").do(send_message_to_users)
+    schedule.every().day.at("18:36").do(send_message_to_users)
+    schedule.every().day.at("20:56").do(send_message_to_users)
+    schedule.every().day.at("22:12").do(send_message_to_users)
 
     while True:
         schedule.run_pending()
