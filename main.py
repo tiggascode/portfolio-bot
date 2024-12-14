@@ -380,11 +380,12 @@ def schedule_messages():
     schedule.every().day.at("07:07").do(send_message_to_users)
     schedule.every().day.at("18:36").do(send_message_to_users)
     schedule.every().day.at("20:56").do(send_message_to_users)
-    schedule.every().day.at("22:12").do(send_message_to_users)
+    schedule.every().day.at("10:28").do(send_message_to_users)
 
     while True:
         schedule.run_pending()
         time.sleep(1)
+
 
 
 # Start the bot
